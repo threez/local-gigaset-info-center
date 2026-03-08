@@ -24,6 +24,15 @@ This project will:
 
 Go to the OpenWeatherMap [signup](https://home.openweathermap.org/users/sign_up) page and create an account. Then, go to your [API keys](https://home.openweathermap.org/api_keys) page and copy your key for the next step.
 
+## Prerequisite: Enable required PHP extensions
+
+Before setting up the service, ensure the following PHP extensions are enabled on your server:
+
+- **cURL** (`curl`) — Required to fetch weather data from the OpenWeatherMap API
+- **GD** (`gd`) — Required to convert PNG weather icons to the Gigaset fnt format (bitmap)
+
+On Synology DiskStation, you can enable these extensions in **Web Station** under the PHP settings for your virtual host.
+
 ## Second step: Set up the service
 
 Copy the contents of this repository to a directory served as `http://<yourserver>/info`. In my case, this would be `/Qweb/info/` on the NAS.
@@ -66,7 +75,9 @@ Also, check `http://<yourserver>/info/menu.jsp` and `http://<yourserver>/info/re
 If you are running a Synology DiskStation, you can use `.htaccess` instead of editing the global Apache config directly.
 
 1. Copy the repository files to a web-served directory, e.g. `/volume1/web/info/`.
-2. In **Web Station**, make sure PHP is enabled for the virtual host serving that directory.
+2. In **Web Station**, make sure PHP is enabled for the virtual host serving that directory. Also ensure the required PHP extensions are enabled:
+   - **cURL** — for fetching OpenWeatherMap data
+   - **GD** — for icon image processing
 3. Copy `.htaccess.example` to `.htaccess` and fill in your values:
 
 ```apache
@@ -89,6 +100,16 @@ RewriteRule ^request\.do$ menu.php [L]
    Replace `10.0.0.0/8` with your local network range, and update the `SetEnv` lines with your city and coordinates.
 
    The `Require local` and `Require ip` directives restrict access to your local network only.
+
+### Optional: Disable weather icons
+
+By default, the service displays weather icons next to the forecast. If icons are not loading or you prefer a text-based view, add the following environment variable to your `.htaccess`:
+
+```apache
+SetEnv SHOW_ICONS false
+```
+
+When icons are disabled, a single German weather word is shown instead (e.g., "Regen", "Sonnig", "Nebel"). This provides a quick visual summary of the expected weather condition without requiring image support.
 
 4. `.htaccess` is listed in `.gitignore` so your API key will not be accidentally committed to version control.
 

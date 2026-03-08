@@ -8,6 +8,9 @@ SetEnv CITY "Berlin"
 SetEnv LATITUDE 52.52437
 SetEnv LONGITUDE 13.41053
 
+# Optional: disable weather icons and show German text labels instead
+# SetEnv SHOW_ICONS false
+
 Options +FollowSymLinks
 RewriteEngine On
 RewriteRule ^menu\.jsp$ menu.php [L]
