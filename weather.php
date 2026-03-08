@@ -125,30 +125,34 @@ function aggregate_daily_weather($forecast)
     $dow = date('w', $item->dt);
     $date = weekday($dow) . ", " . $date;
 
+    $icon = rtrim($item->weather[0]->icon, 'dn') . 'd';
+
     // Check if the date already exists in the nested array
     if (!isset($weatherData[$date])) {
       // If not, initialize the nested array for the date
       $weatherData[$date] = array(
         'min_temp' => $item->main->temp_min,
         'max_temp' => $item->main->temp_max,
-        'total_rain' => $item->rain->{"3h"},
-        'weather_types' => array_map('weather_type', $item->weather)
+        'total_rain' => $item->rain->{"3h"} ?? 0,
+        'weather_types' => array_map('weather_type', $item->weather),
+        'icons' => array($icon)
       );
     } else {
       // If the date already exists, update the minimum and maximum temperature
       $weatherData[$date]['min_temp'] = min($weatherData[$date]['min_temp'], $item->main->temp_min);
       $weatherData[$date]['max_temp'] = max($weatherData[$date]['max_temp'], $item->main->temp_max);
       // Update the total amount of rain
-      $weatherData[$date]['total_rain'] += $item->rain->{"3h"};
+      $weatherData[$date]['total_rain'] += $item->rain->{"3h"} ?? 0;
       // Add the weather type to the array
       $weatherData[$date]['weather_types'] = array_merge(
         $weatherData[$date]['weather_types'],
         array_map('weather_type', $item->weather)
       );
+      $weatherData[$date]['icons'][] = $icon;
     }
   }
 
-  // Summarize the weather types for each date
+  // Summarize the weather types and pick the most common icon for each date
   foreach ($weatherData as $date => $data) {
     $weatherData[$date]['weather_types']
       = postprocess_weather_types(
@@ -156,6 +160,9 @@ function aggregate_daily_weather($forecast)
           $data['weather_types']
         )
       );
+    $icon_counts = array_count_values($data['icons']);
+    arsort($icon_counts);
+    $weatherData[$date]['icon'] = array_key_first($icon_counts);
   }
   return $weatherData;
 }

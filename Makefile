@@ -1,6 +1,16 @@
-DEST = systemmgr@10.0.1.150:web/gigaset/info/
+include config.mk
 
-FILES = index.php menu.php weather.php .htaccess
+STAGE = .stage
+
+.PHONY: publish
 
 publish:
-	scp $(FILES) $(DEST)
+	rm -rf $(STAGE)
+	mkdir -p $(STAGE)/info
+	cp index.php weather.php .htaccess $(STAGE)/info/
+	cp -r icons $(STAGE)/info/
+	cp proxy.php $(STAGE)/
+	cp gigaset-root.htaccess $(STAGE)/.htaccess
+	cp -r icons $(STAGE)/img
+	tar -C $(STAGE) -czf - . | ssh $(HOST) 'tar -C $(DEST) -xzf -'
+	rm -rf $(STAGE)

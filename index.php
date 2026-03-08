@@ -1,6 +1,6 @@
 <?php echo '<?xml version="1.0" encoding="utf-8"?>' ?>
 
-<!DOCTYPE html PUBLIC "-//OPENWAVE//DTD XHTML Mobile 1.0//EN" "http://www.openwave.com/dtd/xhtml-mobile10.dtd">
+<!DOCTYPE html PUBLIC "-//OMA//DTD XHTML Mobile 1.2//EN" "http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">
 <html>
 
 <?php
@@ -30,13 +30,19 @@ $lat = getenv('LATITUDE');
 $lon = getenv('LONGITUDE');
 $city = getenv('CITY');
 $api_key = getenv('OPENWEATHERMAP_API_KEY');
+$base_url = getenv('BASE_URL') ?: 'http://info.gigaset.net/info';
+$icon_base_url = getenv('ICON_BASE_URL') ?: 'http://gigaset.net/img';
+$proxy_base_url = getenv('PROXY_BASE_URL') ?: 'http://gigaset.net';
 ?>
 
 <head>
   <title><?php echo $city; ?></title>
+  <meta name="expires" content="3600" />
 </head>
 
 <body>
+  <p style="text-align:center"><b><?php echo $city; ?> (1.3)</b></p>
+  <br/>
   <?php
   try {
     $result = retrieve_weather($lat, $lon, $api_key);
@@ -47,13 +53,24 @@ $api_key = getenv('OPENWEATHERMAP_API_KEY');
       $minTemp = $data['min_temp'];
       $maxTemp = $data['max_temp'];
       $totalRain = $data['total_rain'];
-      $weatherTypes = $data['weather_types'];
+      $icon = $data['icon'];
 
-      echo "<p style='text-align:center'>$date<br/>";
-      echo str_replace('.', ',',
-          sprintf('%.1f/%.1f°C/%.0f mm', $minTemp, $maxTemp, $totalRain)),
-        "<br/>";
-      echo implode('/', $weatherTypes) . "</p>";
+      // Extract short weekday (e.g. "Mo" from "Mo, 08.03.2026")
+      $dow = explode(',', $date)[0];
+
+      $tempStr = str_replace('.', ',', sprintf('%.0f/%.0f°C', $minTemp, $maxTemp));
+      if ($totalRain > 0.5) {
+        $tempStr .= ' ' . str_replace('.', ',', sprintf('%.0f mm', $totalRain));
+      }
+
+      echo "<p style='text-align:left'>$dow</p>";
+      $icon_url = urlencode("$icon_base_url/$icon.png");
+      echo "<p style='text-align:center'>"
+         . "<object data='$proxy_base_url/proxy/image.do?data=$icon_url'"
+         . " type='image/fnt' width='16' height='16'></object>"
+         . "</p>";
+      echo "<p style='text-align:right'>$tempStr</p>";
+      echo "<br/>";
     }
   } catch (Exception $e) {
     echo "<p style='text-align:center'><b>Error:</b> " . $e->getMessage() . "</p>";
