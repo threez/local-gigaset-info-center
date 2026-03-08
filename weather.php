@@ -131,6 +131,7 @@ function aggregate_daily_weather($forecast)
     if (!isset($weatherData[$date])) {
       // If not, initialize the nested array for the date
       $weatherData[$date] = array(
+        'current_temp' => $item->main->temp,
         'min_temp' => $item->main->temp_min,
         'max_temp' => $item->main->temp_max,
         'total_rain' => $item->rain->{"3h"} ?? 0,
